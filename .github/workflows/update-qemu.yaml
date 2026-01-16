@@ -79,7 +79,7 @@ jobs:
       - name: "Make lima"
         run: |
           prefix=${{ matrix.arch == 'amd64' && '/usr/local' || '/opt/homebrew' }}
-          make -C src/lima PREFIX=$prefix all install
+          sudo make src/lima PREFIX=$prefix all install
 
       - name: "Start lima vms with qemu"
         id: start-vms

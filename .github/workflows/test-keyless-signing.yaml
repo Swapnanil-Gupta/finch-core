@@ -18,7 +18,7 @@ jobs:
           echo '{"version": "0.0.1", "artifact_url": "https://www.abs.xyz", "digest": "", "latest": true}' > manifest.json
 
       - name: Sign manifest file with cosign
-        run: cosign sign-blob manifest.json --bundle manifest.json.bundle
+        run: cosign sign-blob manifest.json --bundle manifest.json.bundle --yes
 
       - name: Inspect cosign generated bundle
         run: cat manifest.json.bundle

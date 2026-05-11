@@ -27,7 +27,7 @@ jobs:
         run: |
           cosign verify-blob manifest.json \
           --bundle manifest.json.bundle \
-          --certificate-identity "https://github.com/Swapnanil-Gupta/finch-core/.github/workflows/test-keyless-signing.yaml@refs/heads/main" \                                    
+          --certificate-identity "https://github.com/Swapnanil-Gupta/finch-core/.github/workflows/test-keyless-signing.yaml@refs/heads/main" \
           --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
 
       - name: Upload to Github artifacts for local verification

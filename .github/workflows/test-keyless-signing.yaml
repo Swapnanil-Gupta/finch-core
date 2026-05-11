@@ -1,0 +1,39 @@
+name: Keyless Signing Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  sign:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    
+    steps:
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Write test manifest file
+        run: |
+          echo '{"version": "0.0.1", "artifact_url": "https://www.abs.xyz", "digest": "", "latest": true}' > manifest.json
+
+      - name: Sign manifest file with cosign
+        run: cosign sign-blob manifest.json --bundle manifest.json.bundle
+
+      - name: Inspect cosign generated bundle
+        run: cat manifest.json.bundle
+
+      - name: Verify manifest file with cosign
+        run: |
+          cosign verify-blob manifest.json \
+          --bundle manifest.json.bundle \
+          --certificate-identity "https://github.com/Swapnanil-Gupta/finch-core/.github/workflows/test-keyless-signing.yaml@refs/heads/main" \                                    
+          --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
+
+      - name: Upload to Github artifacts for local verification
+        uses: actions/upload-artifact@v4
+        with:
+          name: keyless-signing-test
+          path: |
+            manifest.json
+            manifest.json.bundle

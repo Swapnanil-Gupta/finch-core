@@ -15,7 +15,28 @@ jobs:
 
       - name: Write test manifest file
         run: |
-          echo '{"version": "0.0.1", "artifact_url": "https://www.abs.xyz", "digest": "", "latest": true}' > manifest.json
+          cat << EOF > manifest.json
+          {
+            "published_at": "2026-05-12T00:00:00Z",
+            "expires_at": "2026-06-12T00:00:00Z",
+            "artifacts": [
+              {
+                "platform": "darwin",
+                "arch": "arm64",
+                "url": "https://deps.runfinch.com/finch-al2023-os-image-arm64-25872286438.qcow2",
+                "digest": "sha512:4283c712df7f6b6d06e09c8a0511a6336bb9a772d4d86c8e09bc52c6a4941aafd4e88f49373f7e487c8bf003a891f0f54a7aac3f6b25bfd64a5b5afc6c4d99d9",
+                "size": 358547456
+              },
+              {
+                "platform": "darwin",
+                "arch": "amd64",
+                "url": "https://deps.runfinch.com/finch-al2023-os-image-x86-64-25872286438.qcow2",
+                "digest": "sha512:b9b8686fa57a162b7f55ee81fe0a16d51b01ca0f9fa2403c44c917b11a4df5464dec06a1ed3fb90a592aecb5dd2b9657db309d956fd3405baea68f751165c9ac",
+                "size": 402980864
+              }
+            ]
+          }
+          EOF
 
       - name: Sign manifest file with cosign
         run: cosign sign-blob manifest.json --bundle manifest.json.bundle --yes

@@ -6,6 +6,7 @@ package e2e
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/onsi/ginkgo/v2"
@@ -38,7 +39,11 @@ func TestE2e(t *testing.T) {
 		t.Fatalf("failed to get the current working directory: %v", err)
 	}
 
-	vmConfigFile := filepath.Join(wd, "./../_output/lima-template/fedora.yaml")
+	configFileName := "macos.yaml"
+	if runtime.GOOS == "windows" {
+		configFileName = "windows.yaml"
+	}
+	vmConfigFile := filepath.Join(wd, "./../_output/lima-template/", configFileName)
 
 	subject := "limactl"
 	limaOpt, err := option.New([]string{subject})
@@ -46,11 +51,16 @@ func TestE2e(t *testing.T) {
 		t.Fatalf("failed to initialize a testing option: %v", err)
 	}
 
-	vmName := "fedora"
+	vmName := "finch"
+
+	nerdctlMods := []option.Modifier{option.WithNoEnvironmentVariablePassthrough()}
+	if runtime.GOOS == "windows" {
+		nerdctlMods = append(nerdctlMods, option.WithWindowsHostPathTranslation())
+	}
 
 	nerdctlOpt, err := option.New(
 		[]string{subject, "shell", vmName, "sudo", "-E", "nerdctl"},
-		option.WithNoEnvironmentVariablePassthrough(),
+		nerdctlMods...,
 	)
 	if err != nil {
 		t.Fatalf("failed to initialize a testing option: %v", err)

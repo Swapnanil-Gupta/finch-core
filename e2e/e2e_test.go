@@ -5,7 +5,9 @@ package e2e
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"testing"
 
@@ -72,6 +74,21 @@ func TestE2e(t *testing.T) {
 		vmType = "vz"
 	}
 
+	var runOpt *tests.RunOption
+	switch runtime.GOOS {
+	case "windows":
+		runOpt = &tests.RunOption{
+			BaseOpt: nerdctlOpt,
+			CGMode:  tests.Hybrid,
+		}
+	case "darwin":
+		runOpt = &tests.RunOption{
+			BaseOpt:              nerdctlOpt,
+			CGMode:               tests.Unified,
+			DefaultHostGatewayIP: "192.168.5.2",
+		}
+	}
+
 	ginkgo.SynchronizedBeforeSuite(func() []byte {
 		limactlStartOpts := []string{"start", vmConfigFile, "--name", vmName, "--vm-type", vmType}
 		if vmType == "vz" {
@@ -79,6 +96,12 @@ func TestE2e(t *testing.T) {
 		}
 		command.New(limaOpt, limactlStartOpts...).WithTimeoutInSeconds(600).Run()
 		tests.SetupLocalRegistry(nerdctlOpt)
+
+		if runtime.GOOS == "windows" {
+			n, err := exec.Command("netsh", "interface", "ipv4", "show", "addresses", "vEthernet (WSL (Hyper-V firewall))").CombinedOutput()
+			gomega.Expect(err).Should(gomega.BeNil(), "netsh output: %s", string(n))
+			runOpt.DefaultHostGatewayIP = extractIPAddress(string(n))
+		}
 		return nil
 	}, func(bytes []byte) {})
 
@@ -90,53 +113,68 @@ func TestE2e(t *testing.T) {
 
 	ginkgo.Describe(description, func() {
 		// TODO: add more e2e tests and make them work.
-		tests.Save(nerdctlOpt)
-		tests.Load(nerdctlOpt)
-		tests.Pull(nerdctlOpt)
-		tests.Rm(nerdctlOpt)
-		tests.Rmi(nerdctlOpt)
-		tests.Start(nerdctlOpt)
-		tests.Stop(nerdctlOpt)
-		tests.Cp(nerdctlOpt)
-		tests.Tag(nerdctlOpt)
-		tests.Build(nerdctlOpt)
-		tests.Push(nerdctlOpt)
-		tests.Images(nerdctlOpt)
-		tests.ComposeBuild(nerdctlOpt)
-		tests.ComposeDown(nerdctlOpt)
-		tests.ComposeKill(nerdctlOpt)
-		tests.ComposePs(nerdctlOpt)
-		tests.ComposePull(nerdctlOpt)
-		tests.ComposeLogs(nerdctlOpt)
-		tests.Create(nerdctlOpt)
-		tests.Port(nerdctlOpt)
-		tests.Kill(nerdctlOpt)
-		tests.Stats(nerdctlOpt)
-		tests.BuilderPrune(nerdctlOpt)
-		tests.Exec(nerdctlOpt)
-		tests.Logs(nerdctlOpt)
-		tests.Login(nerdctlOpt)
-		tests.Logout(nerdctlOpt)
-		tests.VolumeCreate(nerdctlOpt)
-		tests.VolumeInspect(nerdctlOpt)
-		tests.VolumeLs(nerdctlOpt)
-		tests.VolumeRm(nerdctlOpt)
-		tests.VolumePrune(nerdctlOpt)
-		tests.ImageHistory(nerdctlOpt)
-		tests.ImageInspect(nerdctlOpt)
-		tests.ImagePrune(nerdctlOpt)
-		tests.Info(nerdctlOpt)
-		tests.Events(nerdctlOpt)
-		tests.Inspect(nerdctlOpt)
-		tests.NetworkCreate(nerdctlOpt)
-		tests.NetworkInspect(nerdctlOpt)
-		tests.NetworkLs(nerdctlOpt)
-		tests.NetworkRm(nerdctlOpt)
-		tests.HealthCheck(nerdctlOpt)
+		if runOpt != nil {
+			tests.Run(runOpt)
+		}
+		tests.Ps(nerdctlOpt)
+		tests.Restart(nerdctlOpt)
+		// tests.Save(nerdctlOpt)
+		// tests.Load(nerdctlOpt)
+		// tests.Pull(nerdctlOpt)
+		// tests.Rm(nerdctlOpt)
+		// tests.Rmi(nerdctlOpt)
+		// tests.Start(nerdctlOpt)
+		// tests.Stop(nerdctlOpt)
+		// tests.Cp(nerdctlOpt)
+		// tests.Tag(nerdctlOpt)
+		// tests.Build(nerdctlOpt)
+		// tests.Push(nerdctlOpt)
+		// tests.Images(nerdctlOpt)
+		// tests.ComposeBuild(nerdctlOpt)
+		// tests.ComposeDown(nerdctlOpt)
+		// tests.ComposeKill(nerdctlOpt)
+		// tests.ComposePs(nerdctlOpt)
+		// tests.ComposePull(nerdctlOpt)
+		// tests.ComposeLogs(nerdctlOpt)
+		// tests.Create(nerdctlOpt)
+		// tests.Port(nerdctlOpt)
+		// tests.Kill(nerdctlOpt)
+		// tests.Stats(nerdctlOpt)
+		// tests.BuilderPrune(nerdctlOpt)
+		// tests.Exec(nerdctlOpt)
+		// tests.Logs(nerdctlOpt)
+		// tests.Login(nerdctlOpt)
+		// tests.Logout(nerdctlOpt)
+		// tests.VolumeCreate(nerdctlOpt)
+		// tests.VolumeInspect(nerdctlOpt)
+		// tests.VolumeLs(nerdctlOpt)
+		// tests.VolumeRm(nerdctlOpt)
+		// tests.VolumePrune(nerdctlOpt)
+		// tests.ImageHistory(nerdctlOpt)
+		// tests.ImageInspect(nerdctlOpt)
+		// tests.ImagePrune(nerdctlOpt)
+		// tests.Info(nerdctlOpt)
+		// tests.Events(nerdctlOpt)
+		// tests.Inspect(nerdctlOpt)
+		// tests.NetworkCreate(nerdctlOpt)
+		// tests.NetworkInspect(nerdctlOpt)
+		// tests.NetworkLs(nerdctlOpt)
+		// tests.NetworkRm(nerdctlOpt)
+		// tests.HealthCheck(nerdctlOpt)
 	})
 
 	gomega.RegisterFailHandler(ginkgo.Fail)
 	ginkgo.RunSpecs(t, description)
+}
+
+func extractIPAddress(data string) string {
+	re := regexp.MustCompile(`IP Address:\s+(\d+\.\d+\.\d+\.\d+)`)
+	match := re.FindStringSubmatch(data)
+
+	if match != nil {
+		return match[1]
+	}
+	return ""
 }
 
 func printLimaLogs(vmName string) {

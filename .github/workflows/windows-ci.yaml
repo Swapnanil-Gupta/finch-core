@@ -52,11 +52,6 @@ jobs:
           cache-dependency-path: e2e/go.sum
       - name: Enable WSL2
         uses: Vampire/setup-wsl@v7
-      - name: Configure WSL2 networking
-        shell: pwsh
-        run: |
-          "networkingMode=mirrored`nhostAddressLoopback=true" | Out-File -FilePath "$env:USERPROFILE\.wslconfig" -Encoding ascii
-          wsl --shutdown
       - name: Install platform dependencies
         run: make install.dependencies
       - name: Run e2e tests
